@@ -347,10 +347,11 @@ class TestWSGI(unittest.TestCase):
                             'modify_wsgi_pipeline'):
                 with mock.patch('swift.common.wsgi.wsgi') as _wsgi:
                     with mock.patch('swift.common.wsgi.eventlet') as _eventlet:
-                        conf = wsgi.appconfig(conf_file)
-                        logger = logging.getLogger('test')
-                        sock = listen(('localhost', 0))
-                        wsgi.run_server(conf, logger, sock)
+                        with mock.patch('swift.common.wsgi.inspect'):
+                            conf = wsgi.appconfig(conf_file)
+                            logger = logging.getLogger('test')
+                            sock = listen(('localhost', 0))
+                            wsgi.run_server(conf, logger, sock)
         self.assertEquals('HTTP/1.0',
                           _wsgi.HttpProtocol.default_request_version)
         self.assertEquals(30, _wsgi.WRITE_TIMEOUT)
@@ -396,11 +397,12 @@ class TestWSGI(unittest.TestCase):
                 with mock.patch('swift.common.wsgi.wsgi') as _wsgi:
                     with mock.patch('swift.common.wsgi.eventlet') as _eventlet:
                         with mock.patch.dict('os.environ', {'TZ': ''}):
-                            conf = wsgi.appconfig(conf_dir)
-                            logger = logging.getLogger('test')
-                            sock = listen(('localhost', 0))
-                            wsgi.run_server(conf, logger, sock)
-                            self.assert_(os.environ['TZ'] is not '')
+                            with mock.patch('swift.common.wsgi.inspect'):
+                                conf = wsgi.appconfig(conf_dir)
+                                logger = logging.getLogger('test')
+                                sock = listen(('localhost', 0))
+                                wsgi.run_server(conf, logger, sock)
+                                self.assert_(os.environ['TZ'] is not '')
 
         self.assertEquals('HTTP/1.0',
                           _wsgi.HttpProtocol.default_request_version)
